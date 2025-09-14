@@ -20,7 +20,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         // 허용할 엔드포인트
         final String[] whitelist = {
-                "/actuator/health", "/login", "/signup"
+                "/actuator/health", "/login", "/signup", "/verify/**"
         };
 
         http

@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.entity;
+package com.hanyahunya.auth.main.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -40,5 +40,10 @@ public class User {
     private LocalDateTime updatedAt;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private Status status;
 }

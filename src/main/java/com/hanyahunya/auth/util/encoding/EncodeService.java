@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.encoding;
+package com.hanyahunya.auth.util.encoding;
 
 public interface EncodeService {
     String encode(String data);

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package email_service;
+
+option java_multiple_files = true;
+
+// 이메일 전송 서비스
+service EmailService {
+  rpc SendEmail (EmailRequest) returns (EmailResponse);
+}
+
+// 이메일 전송 요청 메시지
+message EmailRequest {
+  string to = 1;
+  string subject = 2;
+  bool is_html = 3;
+  string content = 4; // 템플릿 혹은 HTML
+  map<string, string> variables = 5; // 템플릿에 들어갈 변수들
+}
+
+// 이메일 전송 응답 메시지
+message EmailResponse {
+  bool success = 1;
+  string message = 2;
+}

@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.entity;
+package com.hanyahunya.auth.main.entity;
 
 public enum Role {
     ADMIN,

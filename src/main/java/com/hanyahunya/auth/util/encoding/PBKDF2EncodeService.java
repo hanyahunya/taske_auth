@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.encoding;
+package com.hanyahunya.auth.util.encoding;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;

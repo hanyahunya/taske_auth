@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.dto;
+package com.hanyahunya.auth.main.dto;
 
 import lombok.Getter;
 import lombok.Setter;

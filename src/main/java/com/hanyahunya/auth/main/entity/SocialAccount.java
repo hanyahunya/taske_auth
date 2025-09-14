@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.entity;
+package com.hanyahunya.auth.main.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ public class SocialAccount {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "provider", nullable = false, length = 31)
+    @Column(name = "provider", nullable = false, length = 32)
     private String provider;
 
     @Column(name = "provider_id", nullable = false)

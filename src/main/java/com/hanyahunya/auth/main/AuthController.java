@@ -1,24 +1,26 @@
-package com.hanyahunya.auth;
+package com.hanyahunya.auth.main;
 
-import com.hanyahunya.auth.dto.SignupDto;
-import com.hanyahunya.auth.encoding.EncodeService;
-import com.hanyahunya.auth.service.AuthService;
+import com.hanyahunya.auth.main.dto.SignupDto;
+import com.hanyahunya.auth.main.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 public class AuthController {
-    private final EncodeService encodeService;
     private final AuthService authService;
 
     @PostMapping("/signup")
     public ResponseEntity<Void> signup(@RequestBody @Valid SignupDto signupDto) {
         authService.signUp(signupDto);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/verify/{code}")
+    public ResponseEntity<Void> verify(@PathVariable("code") String verificationCode) {
+        authService.completeSignup(verificationCode);
         return ResponseEntity.ok().build();
     }
 }
