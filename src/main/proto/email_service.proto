@@ -13,9 +13,9 @@ service EmailService {
 message EmailRequest {
   string to = 1;
   string subject = 2;
-  bool is_html = 3;
-  string content = 4; // 템플릿 혹은 HTML
-  map<string, string> variables = 5; // 템플릿에 들어갈 변수들
+  string template_name = 3;
+  map<string, string> variables = 4; // 템플릿에 들어갈 변수들
+  string locale = 5;
 }
 
 // 이메일 전송 응답 메시지
