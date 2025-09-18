@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.application.handler;
+package com.hanyahunya.auth.adapter.in.web.handler;
 
 import com.hanyahunya.auth.domain.exception.EmailAlreadyExistsException;
 import com.hanyahunya.auth.domain.exception.InvalidTokenException;

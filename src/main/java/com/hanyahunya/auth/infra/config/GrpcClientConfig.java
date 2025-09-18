@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.infra.grpc;
+package com.hanyahunya.auth.infra.config;
 
 import email_service.EmailServiceGrpc;
 import io.grpc.ManagedChannel;

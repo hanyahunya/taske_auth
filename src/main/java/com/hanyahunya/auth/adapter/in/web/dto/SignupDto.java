@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.application.web.dto;
+package com.hanyahunya.auth.adapter.in.web.dto;
 
 import lombok.Getter;
 import lombok.Setter;

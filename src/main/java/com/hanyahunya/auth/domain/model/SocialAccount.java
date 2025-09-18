@@ -24,8 +24,9 @@ public class SocialAccount {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "provider", nullable = false, length = 32)
-    private String provider;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "provider", nullable = false)
+    private Provider provider;
 
     @Column(name = "provider_id", nullable = false)
     private String providerId;

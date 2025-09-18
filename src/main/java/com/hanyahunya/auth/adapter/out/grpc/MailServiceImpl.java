@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.infra.grpc;
+package com.hanyahunya.auth.adapter.out.grpc;
 
 import com.hanyahunya.auth.application.port.out.MailServicePort; // 변경
 import email_service.EmailRequest;

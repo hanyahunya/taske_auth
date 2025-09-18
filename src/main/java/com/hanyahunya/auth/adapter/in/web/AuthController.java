@@ -1,7 +1,8 @@
-package com.hanyahunya.auth.application.web;
+package com.hanyahunya.auth.adapter.in.web;
 
+import com.hanyahunya.auth.adapter.in.web.dto.LoginDto;
 import com.hanyahunya.auth.application.port.in.AuthService;
-import com.hanyahunya.auth.application.web.dto.SignupDto;
+import com.hanyahunya.auth.adapter.in.web.dto.SignupDto;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,5 +23,10 @@ public class AuthController {
     public ResponseEntity<Void> verify(@PathVariable("code") String verificationCode) {
         authService.completeSignup(verificationCode);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody @Valid LoginDto loginDto) {
+
     }
 }

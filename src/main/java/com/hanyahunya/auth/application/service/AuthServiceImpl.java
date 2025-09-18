@@ -1,9 +1,11 @@
-package com.hanyahunya.auth.domain.service;
+package com.hanyahunya.auth.application.service;
 
+import com.hanyahunya.auth.adapter.in.web.dto.LoginDto;
+import com.hanyahunya.auth.application.dto.Tokens;
 import com.hanyahunya.auth.application.port.in.AuthService;
 import com.hanyahunya.auth.application.port.out.EncodeServicePort;
 import com.hanyahunya.auth.application.port.out.MailServicePort;
-import com.hanyahunya.auth.application.web.dto.SignupDto;
+import com.hanyahunya.auth.adapter.in.web.dto.SignupDto;
 import com.hanyahunya.auth.domain.exception.EmailAlreadyExistsException;
 import com.hanyahunya.auth.domain.exception.InvalidTokenException;
 import com.hanyahunya.auth.domain.exception.ResourceNotFoundException;
@@ -65,5 +67,10 @@ public class AuthServiceImpl implements AuthService {
             throw new ResourceNotFoundException("user_id", uuid);
         }
         redisTemplate.delete(VERIFICATION_KEY_PREFIX + verificationCode);
+    }
+
+    @Override
+    public Tokens login(LoginDto loginDto) {
+        return null;
     }
 }

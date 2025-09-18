@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.infra.security;
+package com.hanyahunya.auth.adapter.out.security;
 
 import com.hanyahunya.auth.application.port.out.EncodeServicePort; // 변경
 import jakarta.annotation.PostConstruct;

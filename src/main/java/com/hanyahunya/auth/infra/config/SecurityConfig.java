@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.infra.security;
+package com.hanyahunya.auth.infra.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
