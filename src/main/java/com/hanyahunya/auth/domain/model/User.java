@@ -46,4 +46,8 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private Status status;
+
+    public void updateTimestamp() {
+        this.updatedAt = LocalDateTime.now();
+    }
 }
