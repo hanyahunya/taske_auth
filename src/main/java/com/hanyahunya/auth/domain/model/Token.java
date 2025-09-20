@@ -2,6 +2,7 @@ package com.hanyahunya.auth.domain.model;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -32,4 +33,19 @@ public class Token {
 
     @Column(name = "refresh_token_hash", nullable = false, length = 128)
     private String refreshTokenHash;
+
+    @Builder
+    public Token(UUID tokenId, User user, String accessTokenHash, String refreshTokenHash) {
+        this.tokenId = tokenId;
+        this.user = user;
+        this.accessTokenHash = accessTokenHash;
+        this.refreshTokenHash = refreshTokenHash;
+    }
+
+    public void updateAccessTokenHash(String newAccessTokenHash) {
+        this.accessTokenHash = newAccessTokenHash;
+    }
+    public void updateRefreshTokenHash(String newRefreshTokenHash) {
+        this.refreshTokenHash = newRefreshTokenHash;
+    }
 }

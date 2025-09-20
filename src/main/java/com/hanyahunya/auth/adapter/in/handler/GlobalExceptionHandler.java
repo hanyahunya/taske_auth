@@ -3,6 +3,7 @@ package com.hanyahunya.auth.adapter.in.handler;
 import com.hanyahunya.auth.domain.exception.EmailAlreadyExistsException;
 import com.hanyahunya.auth.domain.exception.InvalidTokenException;
 import com.hanyahunya.auth.domain.exception.ResourceNotFoundException;
+import com.hanyahunya.auth.domain.exception.TokenCompromisedException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleUserNotFoundException(ResourceNotFoundException e) {
         log.warn("UserNotFoundException: {}", e.getMessage());
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(TokenCompromisedException.class)
+    public ResponseEntity<Void> handleTokenCompromisedException(TokenCompromisedException e) {
+        log.warn("TokenCompromisedException: {}", e.getMessage());
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(Exception.class)
