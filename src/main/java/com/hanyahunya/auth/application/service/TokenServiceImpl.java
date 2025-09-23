@@ -11,6 +11,7 @@ import com.hanyahunya.auth.domain.model.User;
 import com.hanyahunya.auth.domain.repository.TokenRepository;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
@@ -19,6 +20,7 @@ import java.util.Date;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
 @RequiredArgsConstructor
 public class TokenServiceImpl implements TokenService {
     private final TokenProviderPort tokenProviderPort;

@@ -15,6 +15,5 @@ public interface TokenProviderPort {
     // 만료된 토큰에서 클레임 추출
     void validateExpiredAccessToken(String expiredAccessToken);
 
-    void validateRefreshToken(String refreshToken);
     Claims getRefreshClaims(String refreshToken);
 }
