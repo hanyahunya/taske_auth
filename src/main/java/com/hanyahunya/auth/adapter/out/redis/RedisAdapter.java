@@ -1,5 +1,6 @@
 package com.hanyahunya.auth.adapter.out.redis;
 
+import com.hanyahunya.auth.application.port.out.AccessLockPort;
 import com.hanyahunya.auth.application.port.out.VerificationPort;
 import com.hanyahunya.auth.domain.util.RandomString;
 import lombok.RequiredArgsConstructor;
@@ -12,11 +13,11 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
-public class RedisVerificationAdapter implements VerificationPort {
+public class RedisAdapter implements VerificationPort, AccessLockPort {
 
     private final StringRedisTemplate redisTemplate;
-    private static final String VERIFICATION_KEY_PREFIX = "auth-service:signup:verify:";
 
+    private static final String VERIFICATION_KEY_PREFIX = "auth-service:signup:verify:";
     @Override
     public String createVerificationCode(UUID userId) {
         String verificationCode = RandomString.generate(200);
@@ -37,5 +38,19 @@ public class RedisVerificationAdapter implements VerificationPort {
     @Override
     public void deleteVerificationCode(String verificationCode) {
         redisTemplate.delete(VERIFICATION_KEY_PREFIX + verificationCode);
+    }
+
+    private static final String ACCESS_LOCK_KEY_PREFIX = "blacklist:user:";
+    @Override
+    public void lock(UUID userId, long timeoutMinutes) {
+        redisTemplate.opsForValue().set(
+                ACCESS_LOCK_KEY_PREFIX + userId.toString(),
+                "1",
+                timeoutMinutes, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public void unlock(UUID userId) {
+        redisTemplate.delete(ACCESS_LOCK_KEY_PREFIX + userId.toString());
     }
 }
