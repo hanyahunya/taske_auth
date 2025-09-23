@@ -50,4 +50,8 @@ public class User {
     public void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }

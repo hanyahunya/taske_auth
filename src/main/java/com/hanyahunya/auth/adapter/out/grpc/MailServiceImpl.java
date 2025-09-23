@@ -1,6 +1,7 @@
 package com.hanyahunya.auth.adapter.out.grpc;
 
 import com.hanyahunya.auth.application.port.out.MailServicePort; // 변경
+import com.hanyahunya.auth.application.port.out.SecurityNotificationPort;
 import email_service.EmailRequest;
 import email_service.EmailResponse;
 import email_service.EmailServiceGrpc;
@@ -10,13 +11,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MailServiceImpl implements MailServicePort { // 변경
+public class MailServiceImpl implements MailServicePort, SecurityNotificationPort { // 변경
 
     private final EmailServiceGrpc.EmailServiceBlockingStub emailStub;
 
@@ -33,6 +37,17 @@ public class MailServiceImpl implements MailServicePort { // 변경
         String verificationLink = frontendUrl + "/verify/" + verificationCode;
         Map<String, String> variables = new HashMap<>();
         variables.put("verification_link", verificationLink);
+
+        sendMail(email, subjectKey, templateName, locale, variables);
+    }
+
+    @Override
+    public void sendCompromiseNotification(String email, LocalDateTime compromisedAt, String locale) {
+        String subjectKey = "email.test.title";
+        String templateName = "auth-test";
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        Map<String, String> variables = new HashMap<>();
+        variables.put("compromise_time", compromisedAt.format(formatter));
 
         sendMail(email, subjectKey, templateName, locale, variables);
     }
