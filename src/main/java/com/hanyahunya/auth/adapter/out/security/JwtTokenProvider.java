@@ -65,16 +65,7 @@ public class JwtTokenProvider implements TokenProviderPort {
     }
 
     @Override
-    public void validateRefreshToken(String refreshToken) {
-        parseRefreshClaims(refreshToken);
-    }
-
-    @Override
     public Claims getRefreshClaims(String refreshToken) {
-        return parseRefreshClaims(refreshToken);
-    }
-
-    private Claims parseRefreshClaims(String refreshToken) {
         return Jwts.parser()
                 .verifyWith(refreshKey)
                 .build()
