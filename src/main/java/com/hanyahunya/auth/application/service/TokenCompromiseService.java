@@ -1,6 +1,7 @@
 package com.hanyahunya.auth.application.service;
 
 import com.hanyahunya.auth.application.port.in.TokenCompromiseUseCase;
+import com.hanyahunya.auth.application.port.in.TokenService;
 import com.hanyahunya.auth.application.port.out.AccessLockPort;
 import com.hanyahunya.auth.application.port.out.SecurityNotificationPort;
 import com.hanyahunya.auth.domain.model.Status;
@@ -10,7 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.UUID;
 
 @Slf4j
@@ -21,11 +24,14 @@ public class TokenCompromiseService implements TokenCompromiseUseCase {
     private final AccessLockPort accessLockPort;
     private final UserRepository userRepository;
     private final SecurityNotificationPort securityNotificationPort;
+    private final TokenService tokenService;
 
     @Override
     @Transactional
-    public void handleCompromise(UUID userId) {
+    public void handleCompromise(UUID userId, long compromisedAt) {
         log.info("ユーザーID '{}' のトークン侵害を処理しています", userId);
+
+        tokenService.revokeAllTokensForUser(userId);
 
         accessLockPort.lock(userId, 15);
 
@@ -33,8 +39,12 @@ public class TokenCompromiseService implements TokenCompromiseUseCase {
             user.updateStatus(Status.COMPROMISED);
 //            userRepository.save(user); // Dirty Checking
 
+            LocalDateTime localDateTime = Instant.ofEpochSecond(compromisedAt)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+
             // todo 추후 유저 닉네임, 로캘 정보 추가
-            securityNotificationPort.sendCompromiseNotification(user.getEmail(), LocalDateTime.now(), "ja-JP");
+            securityNotificationPort.sendCompromiseNotification(user.getEmail(), localDateTime, "ja-JP");
 
             log.info("ユーザーID '{}' のトークン侵害処理が正常に完了しました。", userId);
         });

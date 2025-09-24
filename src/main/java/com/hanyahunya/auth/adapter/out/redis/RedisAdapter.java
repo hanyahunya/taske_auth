@@ -42,11 +42,11 @@ public class RedisAdapter implements VerificationPort, AccessLockPort {
 
     private static final String ACCESS_LOCK_KEY_PREFIX = "blacklist:user:";
     @Override
-    public void lock(UUID userId, long timeoutMinutes) {
+    public void lock(UUID userId, long compromisedAt) {
         redisTemplate.opsForValue().set(
                 ACCESS_LOCK_KEY_PREFIX + userId.toString(),
-                "1",
-                timeoutMinutes, TimeUnit.MINUTES);
+                String.valueOf(compromisedAt),
+                15, TimeUnit.MINUTES);
     }
 
     @Override
