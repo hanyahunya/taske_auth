@@ -2,10 +2,7 @@ package com.hanyahunya.auth.adapter.in.handler;
 
 import com.hanyahunya.auth.adapter.in.web.util.CookieUtil;
 import com.hanyahunya.auth.application.port.in.TokenCompromiseUseCase;
-import com.hanyahunya.auth.domain.exception.EmailAlreadyExistsException;
-import com.hanyahunya.auth.domain.exception.InvalidTokenException;
-import com.hanyahunya.auth.domain.exception.ResourceNotFoundException;
-import com.hanyahunya.auth.domain.exception.TokenCompromisedException;
+import com.hanyahunya.auth.domain.exception.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -15,14 +12,29 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.time.Instant;
+
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+    // signup
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Void> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
         log.warn("EmailAlreadyExistsException: {}", e.getMessage());
         return new ResponseEntity<>(HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(VerificationCooldownException.class)
+    public ResponseEntity<Void> handleVerificationCooldownException(VerificationCooldownException e) {
+        log.warn("VerificationCooldownException: {}", e.getMessage());
+        return new ResponseEntity<>(HttpStatus.TOO_MANY_REQUESTS);
+    }
+
+    @ExceptionHandler(InvalidVerificationCodeException.class)
+    public ResponseEntity<Void> handleInvalidVerificationCodeException(InvalidVerificationCodeException e) {
+        log.warn("InvalidVerificationCodeException: {}", e.getMessage());
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidTokenException.class)
@@ -43,7 +55,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleTokenCompromisedException(TokenCompromisedException e) {
         log.warn("ユーザーID '{}' でトークンの侵害を検知しました。", e.getUserId());
 
-        tokenCompromiseUseCase.handleCompromise(e.getUserId());
+        long unixTimestamp = Instant.now().getEpochSecond();
+        tokenCompromiseUseCase.handleCompromise(e.getUserId(), unixTimestamp);
 
         ResponseCookie deletedCookie = CookieUtil.deleteRefreshTokenCookie();
 

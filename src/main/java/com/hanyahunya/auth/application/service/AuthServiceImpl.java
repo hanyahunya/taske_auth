@@ -8,10 +8,7 @@ import com.hanyahunya.auth.application.port.out.EncodeServicePort;
 import com.hanyahunya.auth.application.port.out.MailServicePort;
 import com.hanyahunya.auth.adapter.in.web.dto.SignupDto;
 import com.hanyahunya.auth.application.port.out.VerificationPort;
-import com.hanyahunya.auth.domain.exception.EmailAlreadyExistsException;
-import com.hanyahunya.auth.domain.exception.InvalidTokenException;
-import com.hanyahunya.auth.domain.exception.InvalidVerificationCodeException;
-import com.hanyahunya.auth.domain.exception.ResourceNotFoundException;
+import com.hanyahunya.auth.domain.exception.*;
 import com.hanyahunya.auth.domain.model.Role;
 import com.hanyahunya.auth.domain.model.Status;
 import com.hanyahunya.auth.domain.model.User;
@@ -34,29 +31,36 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void signUp(SignupDto signupDto) {
+        String dtoEmail = signupDto.getEmail();
+        String dtoEncodedPassword = encodeService.encode(signupDto.getPassword());
+        String dtoLocale = signupDto.getLocale();
         userRepository.findByEmail(signupDto.getEmail())
+                // ifPresentOrElse는 작업 수행만, return값 없음. 반환필요사 .map().orElse()
                 .ifPresentOrElse(
                 user -> {
                     if (user.getStatus() == Status.PENDING_VERIFICATION) {
-                        user.updateTimestamp();
-                        userRepository.save(user);
-                        initiateEmailVerification(user.getUserId(), user.getEmail(), signupDto.getLocale());
+                        if (user.getUpdatedAt().isBefore(LocalDateTime.now().minusHours(1))) {
+                            user.updateTimestamp();
+                            user.updatePassword(dtoEncodedPassword);
+                            initiateEmailVerification(user.getUserId(), user.getEmail(), dtoLocale);
+                        } else {
+                            throw new VerificationCooldownException("認証メールはすでに送信されています。受信したメールから認証を完了してください。");
+                        }
                     } else {
                         throw new EmailAlreadyExistsException();
                     }
                 },
                 () -> {
-                    signupDto.setPassword(encodeService.encode(signupDto.getPassword()));
-                    UUID uuid = UUID.randomUUID();
+                    UUID userId = UUID.randomUUID();
                     User user = User.builder()
-                            .userId(uuid)
-                            .email(signupDto.getEmail())
-                            .password(signupDto.getPassword())
+                            .userId(userId)
+                            .email(dtoEmail)
+                            .password(dtoEncodedPassword)
                             .role(Role.ROLE_USER)
                             .status(Status.PENDING_VERIFICATION)
                             .build();
                     userRepository.save(user);
-                    initiateEmailVerification(uuid, user.getEmail(), signupDto.getLocale());
+                    initiateEmailVerification(userId, dtoEmail, dtoLocale);
                 }
         );
     }
