@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -31,61 +30,35 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     @Override
     public void signUp(SignupDto signupDto) {
-        String dtoEmail = signupDto.getEmail();
-        String dtoEncodedPassword = encodeService.encode(signupDto.getPassword());
-        String dtoLocale = signupDto.getLocale();
         userRepository.findByEmail(signupDto.getEmail())
-                // ifPresentOrElse는 작업 수행만, return값 없음. 반환필요사 .map().orElse()
-                .ifPresentOrElse(
-                user -> {
-                    if (user.getStatus() == Status.PENDING_VERIFICATION) {
-                        if (user.getUpdatedAt().isBefore(LocalDateTime.now().minusHours(1))) {
-                            user.updateTimestamp();
-                            user.updatePassword(dtoEncodedPassword);
-                            initiateEmailVerification(user.getUserId(), user.getEmail(), dtoLocale);
-                        } else {
-                            throw new VerificationCooldownException("認証メールはすでに送信されています。受信したメールから認証を完了してください。");
-                        }
-                    } else {
-                        throw new EmailAlreadyExistsException();
-                    }
-                },
-                () -> {
-                    UUID userId = UUID.randomUUID();
-                    User user = User.builder()
-                            .userId(userId)
-                            .email(dtoEmail)
-                            .password(dtoEncodedPassword)
-                            .role(Role.ROLE_USER)
-                            .status(Status.PENDING_VERIFICATION)
-                            .build();
-                    userRepository.save(user);
-                    initiateEmailVerification(userId, dtoEmail, dtoLocale);
-                }
-        );
-    }
-
-    private void initiateEmailVerification(UUID userId, String email, String locale) {
-        String verificationCode = verificationPort.createVerificationCode(userId);
-        mailService.sendVerificationEmail(email, verificationCode, locale);
+                .ifPresent(user -> {
+                    throw new EmailAlreadyExistsException();
+                });
+        if (verificationPort.isCooldown(signupDto.getEmail())) {
+            throw new VerificationCooldownException("認証メールはすでに送信されています。受信したメールをご確認ください。");
+        }
+        signupDto.setPassword(encodeService.encode(signupDto.getPassword()));
+        String verificationCode = verificationPort.createTemporaryUser(signupDto);
+        mailService.sendVerificationEmail(signupDto.getEmail(), verificationCode, signupDto.getLocale());
     }
 
     @Transactional
     @Override
     public void completeSignup(String verificationCode) {
-        String uuid = verificationPort.getUserIdByVerificationCode(verificationCode)
+        SignupDto dto = verificationPort.findTemporaryUserByCode(verificationCode)
                 .orElseThrow(InvalidVerificationCodeException::new);
-        int updated = userRepository.updateUserStatus(UUID.fromString(uuid), Status.ACTIVE.name());
-        if (updated == 0) {
-            throw new ResourceNotFoundException("user_id", uuid);
-        }
-        verificationPort.deleteVerificationCode(verificationCode);
-    }
 
-    @Override
-    public void cleanupUnverifiedUsers() {
-        LocalDateTime threshold = LocalDateTime.now().toLocalDate().atTime(3, 0);
-        userRepository.deleteByStatusAndUpdatedAtBefore(Status.PENDING_VERIFICATION, threshold);
+        UUID userId = UUID.randomUUID();
+        User user = User.builder()
+                .userId(userId)
+                .email(dto.getEmail())
+                .password(dto.getPassword())
+                .role(Role.ROLE_USER)
+                .status(Status.ACTIVE)
+                .build();
+        userRepository.save(user);
+        // todo Kafka 유저 가입 이벤트 발급
+        verificationPort.deleteVerificationCode(verificationCode);
     }
 
     @Override

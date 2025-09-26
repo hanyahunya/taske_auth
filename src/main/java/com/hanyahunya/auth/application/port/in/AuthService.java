@@ -7,7 +7,6 @@ import com.hanyahunya.auth.application.dto.Tokens;
 public interface AuthService {
     void signUp(SignupDto signupDto);
     void completeSignup(String verificationCode);
-    void cleanupUnverifiedUsers();
 
     Tokens login(LoginDto loginDto);
     
