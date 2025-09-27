@@ -7,16 +7,19 @@ import com.hanyahunya.auth.application.port.in.TokenService;
 import com.hanyahunya.auth.application.port.out.EncodeServicePort;
 import com.hanyahunya.auth.application.port.out.MailServicePort;
 import com.hanyahunya.auth.adapter.in.web.dto.SignupDto;
+import com.hanyahunya.auth.application.port.out.UserEventPublishPort;
 import com.hanyahunya.auth.application.port.out.VerificationPort;
 import com.hanyahunya.auth.domain.exception.*;
 import com.hanyahunya.auth.domain.model.Role;
 import com.hanyahunya.auth.domain.model.Status;
 import com.hanyahunya.auth.domain.model.User;
 import com.hanyahunya.auth.domain.repository.UserRepository;
+import com.hanyahunya.kafkaDto.UserSignedUpEvent;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -26,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final VerificationPort verificationPort;
     private final MailServicePort mailService;
+    private final UserEventPublishPort userEventPublishPort;
 
     @Transactional
     @Override
@@ -58,6 +62,13 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         userRepository.save(user);
         // todo Kafka 유저 가입 이벤트 발급
+        UserSignedUpEvent userSignedUpEvent = UserSignedUpEvent.builder()
+                .userId(userId)
+                .email(dto.getEmail())
+                .country(dto.getLocale())
+                .signedUpAt(LocalDateTime.now())
+                .build();
+        userEventPublishPort.publishUserSignedUpEvent(userSignedUpEvent);
         verificationPort.deleteVerificationCode(verificationCode);
     }
 
