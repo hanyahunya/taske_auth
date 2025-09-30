@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class UserEventKafkaAdapter implements UserEventPublishPort {
 
     private final KafkaTemplate<String, UserSignedUpEvent> kafkaTemplate;
-    private static final String USER_EVENTS_TOPIC = "user-events";
+    private static final String USER_EVENT_TOPIC = "user-events";
 
     @Override
     public void publishUserSignedUpEvent(UserSignedUpEvent event) {
@@ -26,6 +26,6 @@ public class UserEventKafkaAdapter implements UserEventPublishPort {
                 > 토픽이 다르면 딱히 키는 상관없지만 너무 잘게 이벤트별로 나누는거보단 도메인별로 나누는게 좋아보임.
                 -> 그럼 처리는 어떻게 하냐? 같은 user-events topic으로 발행. Consumer에서 @KafkaListener(topics = "user-events" ...) @KafkaHandler로 라우팅 방식으로 처리!
          */
-        kafkaTemplate.send(USER_EVENTS_TOPIC, event.getUserId().toString(), event);
+        kafkaTemplate.send(USER_EVENT_TOPIC, event.getUserId().toString(), event);
     }
 }

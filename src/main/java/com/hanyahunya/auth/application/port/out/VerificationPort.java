@@ -1,13 +1,13 @@
 package com.hanyahunya.auth.application.port.out;
 
-import com.hanyahunya.auth.adapter.in.web.dto.SignupDto;
+import com.hanyahunya.auth.application.command.SignupCommand;
 
 import java.util.Optional;
 
 public interface VerificationPort {
-    String createTemporaryUser(SignupDto signupDto);
+    String createTemporaryUser(String email, String password, String locale);
 
-    Optional<SignupDto> findTemporaryUserByCode(String verificationCode);
+    Optional<SignupCommand> findTemporaryUserByCode(String verificationCode);
 
     boolean isCooldown(String email);
 
