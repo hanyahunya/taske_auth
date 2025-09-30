@@ -43,8 +43,7 @@ public class TokenCompromiseService implements TokenCompromiseUseCase {
                     .atZone(ZoneId.systemDefault())
                     .toLocalDateTime();
 
-            // todo 추후 유저 닉네임, 로캘 정보 추가
-            securityNotificationPort.sendCompromiseNotification(user.getEmail(), localDateTime, "ja-JP");
+            securityNotificationPort.sendCompromiseNotification(user.getEmail(), localDateTime, user.getCountry());
 
             log.info("ユーザーID '{}' のトークン侵害処理が正常に完了しました。", userId);
         });

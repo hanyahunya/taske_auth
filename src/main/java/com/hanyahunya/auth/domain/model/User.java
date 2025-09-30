@@ -47,6 +47,9 @@ public class User {
     @Column(name = "status")
     private Status status;
 
+    @Column(name = "country", length = 32)
+    private String country;
+
     public void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }

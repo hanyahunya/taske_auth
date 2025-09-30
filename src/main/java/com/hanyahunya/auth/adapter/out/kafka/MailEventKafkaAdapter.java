@@ -1,29 +1,26 @@
-package com.hanyahunya.auth.adapter.out.grpc;
+package com.hanyahunya.auth.adapter.out.kafka;
 
-import com.hanyahunya.auth.application.port.out.MailServicePort; // 변경
+import com.hanyahunya.auth.application.port.out.MailServicePort;
 import com.hanyahunya.auth.application.port.out.SecurityNotificationPort;
-import email_service.EmailRequest;
-import email_service.EmailResponse;
-import email_service.EmailServiceGrpc;
-import io.grpc.StatusRuntimeException;
+import com.hanyahunya.kafkaDto.SendSystemMailEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-//@Service
+@Service
 @RequiredArgsConstructor
-public class MailServiceImpl implements MailServicePort, SecurityNotificationPort { // 변경
+public class MailEventKafkaAdapter implements MailServicePort, SecurityNotificationPort {
 
-    // todo gRPC -> Kafka
-    private final EmailServiceGrpc.EmailServiceBlockingStub emailStub;
+    private static final String SYSTEM_MAIL_TOPIC = "system-mail-events";
+    private final KafkaTemplate<String, SendSystemMailEvent> kafkaTemplate;
 
     @Value("${app.frontend.url}")
     private String frontendUrl;
@@ -60,28 +57,18 @@ public class MailServiceImpl implements MailServicePort, SecurityNotificationPor
         sendMail(email, subjectKey, templateName, locale, variables);
     }
 
-    // sendMail 메서드도 locale을 파라미터로 받도록 수정
     private void sendMail(String to, String subjectKey, String templateName, String locale, Map<String, String> variables) {
         log.info("Attempting to send email. To: {}, Template: {}, Locale: {}", to, templateName, locale);
 
-        try {
-            EmailRequest request = EmailRequest.newBuilder()
-                    .setTo(to)
-                    .setSubject(subjectKey)
-                    .setTemplateName(templateName)
-                    .setLocale(locale)
-                    .putAllVariables(variables)
-                    .build();
+        SendSystemMailEvent event = SendSystemMailEvent.builder()
+                .to(to)
+                .subject(subjectKey)
+                .templateName(templateName)
+                .locale(locale)
+                .variables(variables)
+                .build();
 
-            EmailResponse response = emailStub.sendEmail(request);
-
-            if (response.getSuccess()) {
-                log.info("Successfully sent email to {}", to);
-            } else {
-                log.error("Failed to send email to {}: {}", to, response.getMessage());
-            }
-        } catch (StatusRuntimeException e) {
-            log.error("gRPC error while sending email to {}: {}", to, e.getStatus());
-        }
+        // todo 전송 실패시. acknowledgement? 암튼 그거 기반 실패 처리 필요 ***중요***
+        kafkaTemplate.send(SYSTEM_MAIL_TOPIC, to, event);
     }
 }

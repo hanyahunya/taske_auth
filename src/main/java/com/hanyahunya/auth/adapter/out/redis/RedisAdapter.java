@@ -1,6 +1,6 @@
 package com.hanyahunya.auth.adapter.out.redis;
 
-import com.hanyahunya.auth.adapter.in.web.dto.SignupDto;
+import com.hanyahunya.auth.application.command.SignupCommand;
 import com.hanyahunya.auth.application.port.out.AccessLockPort;
 import com.hanyahunya.auth.application.port.out.VerificationPort;
 import com.hanyahunya.auth.domain.util.RandomString;
@@ -27,17 +27,20 @@ public class RedisAdapter implements VerificationPort, AccessLockPort {
     private final String TEMP_USER_KEY_PREFIX = "auth:signup:temp_user:";
     private final String COOLDOWN_KEY_PREFIX = "auth:signup:cooldown:";
     @Override
-    public String createTemporaryUser(SignupDto signupDto) {
+    public String createTemporaryUser(String email, String password, String locale) {
         String verificationCode = RandomString.generate(200);
         String tempUserKey = TEMP_USER_KEY_PREFIX + verificationCode;
-        String cooldownKey = COOLDOWN_KEY_PREFIX + signupDto.getEmail();
-        redisTemplate.execute(new SessionCallback<Object>() {
+        String cooldownKey = COOLDOWN_KEY_PREFIX + email;
+
+        SignupCommand signupCommand = new SignupCommand(email, password, locale);
+
+        redisTemplate.execute(new SessionCallback<>() {
             @Override
             public <K, V> Object execute(RedisOperations<K, V> operations) throws DataAccessException {
                 operations.multi(); // Transaction 시작
 
                 // 실행할 작업들
-                operations.opsForValue().set((K) tempUserKey, (V) signupDto, 1, TimeUnit.HOURS);
+                operations.opsForValue().set((K) tempUserKey, (V) signupCommand, 1, TimeUnit.HOURS);
                 operations.opsForValue().set((K) cooldownKey, (V) "locked", 1, TimeUnit.HOURS);
 
                 return operations.exec(); // Transaction 실행
@@ -47,12 +50,20 @@ public class RedisAdapter implements VerificationPort, AccessLockPort {
         return verificationCode;
     }
 
+    /*
+        todo 아래거 해결. 일단 기능개발
+            gateway         -request->      adapter(in)     Dto
+            adapter(in)     -request->      useCase         command
+            useCase         -request->      adapter(out)    params
+            adapter(out)    -response->     useCase         command (????)
+            useCase         -response->     adapter(in)     ???
+     */
     @Override
-    public Optional<SignupDto> findTemporaryUserByCode(String verificationCode) {
+    public Optional<SignupCommand> findTemporaryUserByCode(String verificationCode) {
         String key = TEMP_USER_KEY_PREFIX + verificationCode;
         Object value = redisTemplate.opsForValue().get(key);
-        if (value instanceof SignupDto signupDto) {
-            return Optional.of(signupDto);
+        if (value instanceof SignupCommand signupCommand) {
+            return Optional.of(signupCommand);
         }
         return Optional.empty();
     }
@@ -69,8 +80,8 @@ public class RedisAdapter implements VerificationPort, AccessLockPort {
 
         Object value = redisTemplate.opsForValue().get(tempUserKey);
 
-        if (value instanceof SignupDto signupDto) {
-            String email = signupDto.getEmail();
+        if (value instanceof SignupCommand signupCommand) {
+            String email = signupCommand.email();
             String cooldownKey = COOLDOWN_KEY_PREFIX + email;
 
             redisTemplate.delete(List.of(tempUserKey, cooldownKey));
