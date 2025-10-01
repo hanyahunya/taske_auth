@@ -72,6 +72,8 @@ jwt:
     secret: ${TASKE_JWT_ACCESS_SECRET}
   refreshtoken:
     secret: ${TASKE_JWT_REFRESH_SECRET}
+  verificationtoken:
+    secret: ${TASKE_JWT_VERIFY_SECRET}
 
 # encoder
 encoder:
