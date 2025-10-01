@@ -28,7 +28,7 @@ public class RedisAdapter implements VerificationPort, AccessLockPort {
     private final String COOLDOWN_KEY_PREFIX = "auth:signup:cooldown:";
     @Override
     public String createTemporaryUser(String email, String password, String locale) {
-        String verificationCode = RandomString.generate(200);
+        String verificationCode = RandomString.generateAlphanumeric(200);
         String tempUserKey = TEMP_USER_KEY_PREFIX + verificationCode;
         String cooldownKey = COOLDOWN_KEY_PREFIX + email;
 
@@ -90,6 +90,35 @@ public class RedisAdapter implements VerificationPort, AccessLockPort {
             redisTemplate.delete(tempUserKey);
         }
     }
+
+    // 2fa
+    private final String TFA_CODE_KEY_PREFIX = "auth:2fa:email:";
+    @Override
+    public void saveSecondFactorCode(String email, String code) {
+        String key = TFA_CODE_KEY_PREFIX + email;
+
+        stringRedisTemplate.opsForValue().set(key, code, 3, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public boolean verifySecondFactorCode(String email, String submittedCode) {
+        String key = TFA_CODE_KEY_PREFIX + email;
+
+        String storedCode = stringRedisTemplate.opsForValue().get(key);
+
+        if (storedCode == null) {
+            return false;
+        }
+
+        return storedCode.equals(submittedCode);
+    }
+
+    @Override
+    public void deleteSecondFactorCode(String email) {
+        String key = TFA_CODE_KEY_PREFIX + email;
+        stringRedisTemplate.delete(key);
+    }
+
 
     private static final String ACCESS_LOCK_KEY_PREFIX = "blacklist:user:";
     @Override

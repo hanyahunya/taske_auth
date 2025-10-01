@@ -42,8 +42,13 @@ public class MailEventKafkaAdapter implements MailServicePort, SecurityNotificat
     }
 
     @Override
-    public void sendVerificationCode(String email, String verificationCode) {
+    public void sendVerificationCode(String email, String verificationCode, String locale) {
+        String subjectKey = "email.tfa.title";
+        String templateName = "auth-tfa";
+        Map<String, String> variables = new HashMap<>();
+        variables.put("verification_code", verificationCode);
 
+        sendMail(email, subjectKey, templateName, locale, variables);
     }
 
     @Override

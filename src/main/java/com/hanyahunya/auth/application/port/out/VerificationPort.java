@@ -12,4 +12,8 @@ public interface VerificationPort {
     boolean isCooldown(String email);
 
     void deleteVerificationCode(String verificationCode);
+
+    void saveSecondFactorCode(String email, String code);
+    boolean verifySecondFactorCode(String email, String submittedCode);
+    void deleteSecondFactorCode(String email);
 }
