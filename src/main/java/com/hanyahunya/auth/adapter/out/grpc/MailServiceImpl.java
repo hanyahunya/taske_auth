@@ -45,7 +45,7 @@ public class MailServiceImpl implements MailServicePort, SecurityNotificationPor
     }
 
     @Override
-    public void sendVerificationCode(String email, String verificationCode) {
+    public void sendVerificationCode(String email, String verificationCode, String locale) {
 
     }
 

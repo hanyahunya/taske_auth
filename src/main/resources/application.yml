@@ -8,16 +8,15 @@ spring:
     exclude: org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${TASKE_DB_URL}
-    username: ${TASKE_DB_USERNAME}
-    password: ${TASKE_DB_PASSWORD}
+    url: ${TASKE_AUTH_DB_URL}
+    username: ${TASKE_AUTH_DB_USERNAME}
+    password: ${TASKE_AUTH_DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
       ddl-auto: update
     generate-ddl: true
     show-sql: false
-  # need change
   data:
     redis:
       host: ${TASKE_REDIS_HOST}
@@ -39,7 +38,7 @@ spring:
       properties:
         spring.deserializer.key.delegate.class: org.apache.kafka.common.serialization.StringDeserializer
         spring.deserializer.value.delegate.class: org.springframework.kafka.support.serializer.JsonDeserializer
-        spring.json.trusted.packages: "com.hanyahunya.kafkaDto.*"
+        spring.json.trusted.packages: "com.hanyahunya.kafkaDto"
         spring.json.use.type.headers: true
   # gRPC
   grpc:
@@ -47,20 +46,6 @@ spring:
       worker-service:
         address: static://localhost:9090
         negotiation-type: plaintext
-  # mail
-  mail:
-    host: ${TASKE_SMTP_HOST}
-    port: ${TASKE_SMTP_PORT}
-    username: ${TASKE_SMTP_USER}
-    password: ${TASKE_SMTP_PW}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-          ssl:
-            trust: ${TASKE_SMTP_HOST}
 
 app:
   frontend:
@@ -77,4 +62,4 @@ jwt:
 
 # encoder
 encoder:
-  secret: ${TASKE_ENCODER_SECRET}
+  secret: ${TASKE_AUTH_ENCODER_SECRET}

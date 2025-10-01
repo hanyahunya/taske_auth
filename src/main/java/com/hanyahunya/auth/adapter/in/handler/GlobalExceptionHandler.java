@@ -66,6 +66,23 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(headers, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler(UserCompromisedException.class)
+    public ResponseEntity<Void> handleUserCompromisedException(UserCompromisedException e) {
+        log.info("UserCompromisedException: {}", e.getMessage());
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + e.getToken());
+
+        // 202
+        return ResponseEntity.status(HttpStatus.ACCEPTED).headers(headers).build();
+    }
+
+    @ExceptionHandler(UserPendingVerificationException.class)
+    public ResponseEntity<Void> handleUserPendingVerificationException(UserPendingVerificationException e) {
+        log.info("UserPendingVerificationException: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Void> handleGenericException(Exception e) {
         log.error("An unexpected error occurred", e);
