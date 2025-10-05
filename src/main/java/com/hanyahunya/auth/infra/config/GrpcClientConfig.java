@@ -1,7 +1,9 @@
 package com.hanyahunya.auth.infra.config;
 
 import email_service.EmailServiceGrpc;
+import google_login.GoogleLoginServiceGrpc;
 import io.grpc.ManagedChannel;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.GrpcChannelFactory;
@@ -19,5 +21,12 @@ public class GrpcClientConfig {
 
         // 생성된 채널을 이용해 스텁을 만들고 Bean으로 반환
         return EmailServiceGrpc.newBlockingStub(channel);
+    }
+
+    @Bean
+//    @Qualifier("googleLoginStub")
+    GoogleLoginServiceGrpc.GoogleLoginServiceBlockingStub googleLoginServiceStub(GrpcChannelFactory channelFactory) {
+        ManagedChannel channel = channelFactory.createChannel("integration-service");
+        return GoogleLoginServiceGrpc.newBlockingStub(channel);
     }
 }

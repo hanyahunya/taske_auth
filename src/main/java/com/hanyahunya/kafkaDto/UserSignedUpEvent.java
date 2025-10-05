@@ -1,5 +1,6 @@
 package com.hanyahunya.kafkaDto;
 
+import com.hanyahunya.auth.domain.model.User;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,4 +18,13 @@ public class UserSignedUpEvent {
     private String email;
     private String country;
     private LocalDateTime signedUpAt;
+
+    public static UserSignedUpEvent fromUser(User user) {
+        return UserSignedUpEvent.builder()
+                .userId(user.getUserId())
+                .email(user.getEmail())
+                .country(user.getCountry())
+                .signedUpAt(user.getCreatedAt())
+                .build();
+    }
 }

@@ -53,8 +53,8 @@ public class MailEventKafkaAdapter implements MailServicePort, SecurityNotificat
 
     @Override
     public void sendCompromiseNotification(String email, LocalDateTime compromisedAt, String locale) {
-        String subjectKey = "email.test.title";
-        String templateName = "auth-test";
+        String subjectKey = "email.compromise.title";
+        String templateName = "auth-compromise";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         Map<String, String> variables = new HashMap<>();
         variables.put("compromise_time", compromisedAt.format(formatter));
