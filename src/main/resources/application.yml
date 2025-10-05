@@ -43,9 +43,13 @@ spring:
   # gRPC
   grpc:
     client:
-      worker-service:
-        address: static://localhost:9090
-        negotiation-type: plaintext
+#      worker-service:
+#        address: static://localhost:9090
+#        negotiation-type: plaintext
+      channels:
+        integration-service:
+          address: static://localhost:9091
+          negotiation-type: plaintext
 
 app:
   frontend:

@@ -1,6 +1,7 @@
 package com.hanyahunya.auth.application.service;
 
 import com.hanyahunya.auth.application.command.LoginCommand;
+import com.hanyahunya.auth.application.command.SocialLoginCommand;
 import com.hanyahunya.auth.application.command.ValidateTfaCommand;
 import com.hanyahunya.auth.application.dto.Tokens;
 import com.hanyahunya.auth.application.port.in.AuthService;
@@ -8,9 +9,8 @@ import com.hanyahunya.auth.application.port.in.TokenService;
 import com.hanyahunya.auth.application.port.out.*;
 import com.hanyahunya.auth.application.command.SignupCommand;
 import com.hanyahunya.auth.domain.exception.*;
-import com.hanyahunya.auth.domain.model.Role;
-import com.hanyahunya.auth.domain.model.Status;
-import com.hanyahunya.auth.domain.model.User;
+import com.hanyahunya.auth.domain.model.*;
+import com.hanyahunya.auth.domain.repository.SocialAccountRepository;
 import com.hanyahunya.auth.domain.repository.UserRepository;
 import com.hanyahunya.auth.domain.util.RandomString;
 import com.hanyahunya.kafkaDto.UserSignedUpEvent;
@@ -31,6 +31,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserEventPublishPort userEventPublishPort;
     private final TokenService tokenService;
     private final VerifyTokenPort verifyTokenPort;
+    private final SocialLoginAdapterFactory socialLoginAdapterFactory;
+    private final SocialAccountRepository socialAccountRepository;
 
     @Transactional
     @Override
@@ -67,13 +69,7 @@ public class AuthServiceImpl implements AuthService {
                 .status(Status.ACTIVE)
                 .build();
         userRepository.save(user);
-        UserSignedUpEvent userSignedUpEvent = UserSignedUpEvent.builder()
-                .userId(userId)
-                .email(command.email())
-                .country(command.locale())
-                .signedUpAt(LocalDateTime.now())
-                .build();
-        userEventPublishPort.publishUserSignedUpEvent(userSignedUpEvent);
+        userEventPublishPort.publishUserSignedUpEvent(UserSignedUpEvent.fromUser(user));
         verificationPort.deleteVerificationCode(verificationCode);
     }
 
@@ -111,5 +107,34 @@ public class AuthServiceImpl implements AuthService {
                     user.updateStatus(Status.ACTIVE);
                     return tokenService.loginAndIssueTokens(user);
                 }).orElseThrow(LoginFailedException::new);
+    }
+
+    @Override
+    public Tokens socialLogin(SocialLoginCommand command) {
+        Provider provider = command.provider();
+        SocialLoginPort socialLoginPort = socialLoginAdapterFactory.getAdapter(provider);
+
+        String sub = socialLoginPort.processLogin(command.validateCode());
+        return socialAccountRepository.findByProviderAndProviderId(provider, sub)
+                .map(socialAccount -> tokenService.loginAndIssueTokens(socialAccount.getUser()))
+                .orElseGet(() -> {
+                    UUID userId = UUID.randomUUID();
+                    User user = User.builder()
+                            .userId(userId)
+                            .country(command.locale())
+                            .role(Role.ROLE_USER)
+                            .status(Status.ACTIVE)
+                            .build();
+                    SocialAccount socialAccount = SocialAccount.builder()
+                            .provider(provider)
+                            .providerId(sub)
+                            .user(user)
+                            .build();
+                    socialAccountRepository.save(socialAccount);
+
+                    userEventPublishPort.publishUserSignedUpEvent(UserSignedUpEvent.fromUser(user));
+
+                    return tokenService.loginAndIssueTokens(user);
+                });
     }
 }

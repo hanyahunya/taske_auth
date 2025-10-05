@@ -1,0 +1,22 @@
+syntax = "proto3";
+// 생성될 자바 클래스들의 패키지 경로를 지정
+package google_login;
+
+option java_multiple_files = true;
+
+// Google 로그인 처리를 위한 gRPC 서비스 정의
+service GoogleLoginService {
+  rpc GoogleLogin (LoginRequest) returns (LoginResponse);
+}
+
+// 로그인 처리 요청 메시지
+message LoginRequest {
+  // 프론트엔드에서 Google로부터 받은 임시 인증 코드 (예: "4/0A...")
+  string authorization_code = 1;
+}
+
+// 로그인 처리 응답 메시지
+message LoginResponse {
+  // Google 계정의 고유 식별자 (Subject)
+  string sub = 1;
+}
