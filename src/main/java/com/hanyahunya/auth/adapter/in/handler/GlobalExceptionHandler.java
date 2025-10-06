@@ -12,12 +12,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.security.SignatureException;
 import java.time.Instant;
 
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
+    //todo 모든 예외 잡기.
+
     // signup
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Void> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
@@ -48,6 +51,13 @@ public class GlobalExceptionHandler {
         log.warn("UserNotFoundException: {}", e.getMessage());
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
+
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<Void> handleSignatureException(SignatureException e) {
+        log.warn("Invalid JWT Signature: {}", e.getMessage());
+        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    }
+
 
     private final TokenCompromiseUseCase tokenCompromiseUseCase;
 
