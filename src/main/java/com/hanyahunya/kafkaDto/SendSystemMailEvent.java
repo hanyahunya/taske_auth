@@ -12,9 +12,9 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SendSystemMailEvent {
-    String to;
-    String subject;
-    String templateName;
-    Map<String, String> variables;
-    String locale;
+    private String to;
+    private String subject;
+    private String templateName;
+    private Map<String, String> variables;
+    private String locale;
 }

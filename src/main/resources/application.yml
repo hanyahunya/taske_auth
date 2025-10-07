@@ -51,6 +51,11 @@ spring:
           address: static://localhost:9091
           negotiation-type: plaintext
 
+oauth2:
+  google:
+    client-id: ${TASKE_GOOGLE_CLIENT_ID}
+    issuer: https://accounts.google.com
+
 app:
   frontend:
     url: https://hanyahunya.com/taske

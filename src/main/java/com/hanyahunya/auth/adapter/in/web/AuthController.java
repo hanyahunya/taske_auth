@@ -62,10 +62,17 @@ public class AuthController {
         return ResponseEntity.ok().headers(headers).build();
     }
 
-    @PostMapping("/login/{provider}")
+    // todo 나중에 Google, Github, Kakao, Naver 등 각 소셜에 맞는 혹은 동일한 종류로 나눠서 처리 필요 (nonce, id_token등 형식이 다르게에?)
+    @PostMapping("/login/{provider}") // 10.07 일단 nonce 있는거로 (Google)
     public ResponseEntity<Void> socialLogin(@PathVariable("provider") String provider, @RequestBody @Valid SocialLoginDto requestDto) {
 
-        SocialLoginCommand command = new SocialLoginCommand(Provider.valueOf(provider.toUpperCase()), requestDto.getValidateCode(), requestDto.getLocale());
+        SocialLoginCommand command = new SocialLoginCommand(
+                Provider.valueOf(provider.toUpperCase()),
+                requestDto.getValidateCode(),
+                requestDto.getIdToken(),
+                requestDto.getNonce(),
+                requestDto.getLocale()
+        );
 
         Tokens tokens = authService.socialLogin(command);
 
