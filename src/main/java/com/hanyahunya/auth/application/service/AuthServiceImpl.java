@@ -8,6 +8,8 @@ import com.hanyahunya.auth.application.port.in.AuthService;
 import com.hanyahunya.auth.application.port.in.TokenService;
 import com.hanyahunya.auth.application.port.out.*;
 import com.hanyahunya.auth.application.command.SignupCommand;
+import com.hanyahunya.auth.application.security.IdTokenValidator;
+import com.hanyahunya.auth.application.security.IdTokenValidatorFactory;
 import com.hanyahunya.auth.domain.exception.*;
 import com.hanyahunya.auth.domain.model.*;
 import com.hanyahunya.auth.domain.repository.SocialAccountRepository;
@@ -18,7 +20,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -33,6 +34,7 @@ public class AuthServiceImpl implements AuthService {
     private final VerifyTokenPort verifyTokenPort;
     private final SocialLoginAdapterFactory socialLoginAdapterFactory;
     private final SocialAccountRepository socialAccountRepository;
+    private final IdTokenValidatorFactory idTokenValidatorFactory;
 
     @Transactional
     @Override
@@ -108,14 +110,17 @@ public class AuthServiceImpl implements AuthService {
                     return tokenService.loginAndIssueTokens(user);
                 }).orElseThrow(LoginFailedException::new);
     }
-
+    
+    //todo id_token 파싱, nonce 일치 확인 -> sub 가져와서 db대조후 로그인 처리
     @Override
     public Tokens socialLogin(SocialLoginCommand command) {
         Provider provider = command.provider();
         SocialLoginPort socialLoginPort = socialLoginAdapterFactory.getAdapter(provider);
+        IdTokenValidator idTokenValidator = idTokenValidatorFactory.getIdTokenValidator(provider);
 
-        String sub = socialLoginPort.processLogin(command.validateCode());
-        return socialAccountRepository.findByProviderAndProviderId(provider, sub)
+        String newSub = idTokenValidator.validateAndGetSub(command.idToken(), command.nonce());
+        // todo gRPC -> kafka *sub를 auth 서비스 단에서 알수있으면 굳이 동기로 처리할 필요가 없음. integration 서비스에서는 후처리
+        return socialAccountRepository.findByProviderAndProviderId(provider, newSub)
                 .map(socialAccount -> tokenService.loginAndIssueTokens(socialAccount.getUser()))
                 .orElseGet(() -> {
                     UUID userId = UUID.randomUUID();
@@ -127,12 +132,13 @@ public class AuthServiceImpl implements AuthService {
                             .build();
                     SocialAccount socialAccount = SocialAccount.builder()
                             .provider(provider)
-                            .providerId(sub)
+                            .providerId(newSub)
                             .user(user)
                             .build();
-                    socialAccountRepository.save(socialAccount);
 
+                    socialAccountRepository.save(socialAccount);
                     userEventPublishPort.publishUserSignedUpEvent(UserSignedUpEvent.fromUser(user));
+                    socialLoginPort.processLogin(command.validateCode());
 
                     return tokenService.loginAndIssueTokens(user);
                 });

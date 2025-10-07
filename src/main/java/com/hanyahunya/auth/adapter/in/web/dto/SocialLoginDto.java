@@ -11,6 +11,10 @@ public class SocialLoginDto {
     @JsonProperty("code")
     private String validateCode;
     @NotBlank
+    private String idToken;
+    @NotBlank
+    private String nonce;
+    @NotBlank
     @SupportedLocale
     private String locale;
 }

@@ -2,5 +2,5 @@ package com.hanyahunya.auth.application.command;
 
 import com.hanyahunya.auth.domain.model.Provider;
 
-public record SocialLoginCommand(Provider provider, String validateCode, String locale) {
+public record SocialLoginCommand(Provider provider, String validateCode, String idToken, String nonce, String locale) {
 }
