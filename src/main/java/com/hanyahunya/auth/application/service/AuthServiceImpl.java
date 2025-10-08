@@ -111,16 +111,15 @@ public class AuthServiceImpl implements AuthService {
                 }).orElseThrow(LoginFailedException::new);
     }
     
-    //todo id_token 파싱, nonce 일치 확인 -> sub 가져와서 db대조후 로그인 처리
+    @Transactional
     @Override
     public Tokens socialLogin(SocialLoginCommand command) {
         Provider provider = command.provider();
-        SocialLoginPort socialLoginPort = socialLoginAdapterFactory.getAdapter(provider);
+        ProcessSocialAuthPort processSocialAuthPort = socialLoginAdapterFactory.getAdapter(provider);
         IdTokenValidator idTokenValidator = idTokenValidatorFactory.getIdTokenValidator(provider);
 
-        String newSub = idTokenValidator.validateAndGetSub(command.idToken(), command.nonce());
-        // todo gRPC -> kafka *sub를 auth 서비스 단에서 알수있으면 굳이 동기로 처리할 필요가 없음. integration 서비스에서는 후처리
-        return socialAccountRepository.findByProviderAndProviderId(provider, newSub)
+        String sub = idTokenValidator.validateAndGetSub(command.idToken(), command.nonce());
+        return socialAccountRepository.findByProviderAndProviderId(provider, sub)
                 .map(socialAccount -> tokenService.loginAndIssueTokens(socialAccount.getUser()))
                 .orElseGet(() -> {
                     UUID userId = UUID.randomUUID();
@@ -132,13 +131,13 @@ public class AuthServiceImpl implements AuthService {
                             .build();
                     SocialAccount socialAccount = SocialAccount.builder()
                             .provider(provider)
-                            .providerId(newSub)
+                            .providerId(sub)
                             .user(user)
                             .build();
 
                     socialAccountRepository.save(socialAccount);
                     userEventPublishPort.publishUserSignedUpEvent(UserSignedUpEvent.fromUser(user));
-                    socialLoginPort.processLogin(command.validateCode());
+                    processSocialAuthPort.processLogin(command.validateCode(), sub);
 
                     return tokenService.loginAndIssueTokens(user);
                 });

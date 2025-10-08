@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.adapter.in.handler;
+package com.hanyahunya.auth.global;
 
 import com.hanyahunya.auth.adapter.in.web.util.CookieUtil;
 import com.hanyahunya.auth.application.port.in.TokenCompromiseUseCase;
@@ -47,6 +47,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Void> handleUserNotFoundException(ResourceNotFoundException e) {
         log.warn("UserNotFoundException: {}", e.getMessage());
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(LoginFailedException.class)
+    public ResponseEntity<Void> handleLoginFailedException(LoginFailedException e) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
 
     private final TokenCompromiseUseCase tokenCompromiseUseCase;

@@ -9,8 +9,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProcessSocialTokenEvent {
+public class SocialAuthCodeEvent {
     private String provider;
-    private String userSub;
     private String authorizationCode;
 }
