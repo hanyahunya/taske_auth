@@ -36,6 +36,9 @@ public class TokenCompromiseService implements TokenCompromiseUseCase {
         accessLockPort.lock(userId, 15);
 
         userRepository.findById(userId).ifPresent(user -> {
+            if (user.getEmail() == null) {
+                return;
+            }
             user.updateStatus(Status.COMPROMISED);
 //            userRepository.save(user); // Dirty Checking
 

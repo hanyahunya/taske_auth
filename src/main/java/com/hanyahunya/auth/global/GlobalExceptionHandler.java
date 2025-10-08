@@ -1,4 +1,4 @@
-package com.hanyahunya.auth.adapter.in.handler;
+package com.hanyahunya.auth.global;
 
 import com.hanyahunya.auth.adapter.in.web.util.CookieUtil;
 import com.hanyahunya.auth.application.port.in.TokenCompromiseUseCase;
@@ -12,15 +12,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.security.SignatureException;
 import java.time.Instant;
 
 @Slf4j
 @RestControllerAdvice
 @RequiredArgsConstructor
 public class GlobalExceptionHandler {
-    //todo 모든 예외 잡기.
-
     // signup
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Void> handleEmailAlreadyExistsException(EmailAlreadyExistsException e) {
@@ -52,12 +49,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(SignatureException.class)
-    public ResponseEntity<Void> handleSignatureException(SignatureException e) {
-        log.warn("Invalid JWT Signature: {}", e.getMessage());
-        return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+    @ExceptionHandler(LoginFailedException.class)
+    public ResponseEntity<Void> handleLoginFailedException(LoginFailedException e) {
+        return new ResponseEntity<>(HttpStatus.FORBIDDEN);
     }
-
 
     private final TokenCompromiseUseCase tokenCompromiseUseCase;
 
