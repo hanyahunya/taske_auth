@@ -70,8 +70,8 @@ public class AuthServiceImpl implements AuthService {
                 .role(Role.ROLE_USER)
                 .status(Status.ACTIVE)
                 .build();
-        userRepository.save(user);
-        userEventPublishPort.publishUserSignedUpEvent(UserSignedUpEvent.fromUser(user));
+        User savedUser = userRepository.save(user);
+        userEventPublishPort.publishUserSignedUpEvent(UserSignedUpEvent.fromUser(savedUser));
         verificationPort.deleteVerificationCode(verificationCode);
     }
 
