@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   application:
@@ -11,11 +11,17 @@ spring:
     url: ${TASKE_AUTH_DB_URL}
     username: ${TASKE_AUTH_DB_USERNAME}
     password: ${TASKE_AUTH_DB_PASSWORD}
+  #  jpa:
+  #    database-platform: org.hibernate.dialect.MySQL8Dialect
+  #    hibernate:
+  #      ddl-auto: update
+  #    generate-ddl: true
+  #    show-sql: false
   jpa:
     database-platform: org.hibernate.dialect.MySQL8Dialect
     hibernate:
-      ddl-auto: update
-    generate-ddl: true
+      ddl-auto: none
+    generate-ddl: false
     show-sql: false
   data:
     redis:
@@ -24,7 +30,7 @@ spring:
       password: ${TASKE_REDIS_PW}
   # kafka
   kafka:
-    bootstrap-servers: localhost:29092
+    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
@@ -48,7 +54,7 @@ spring:
 #        negotiation-type: plaintext
       channels:
         integration-service:
-          address: static://localhost:9091
+          address: static://${INTEGRATION_HOST}:${GRPC_INTEGRATION_PORT}
           negotiation-type: plaintext
 
 oauth2:
@@ -58,7 +64,7 @@ oauth2:
 
 app:
   frontend:
-    url: https://hanyahunya.com/taske
+    url: ${FRONT_URL}
 
 # jwt
 jwt:
